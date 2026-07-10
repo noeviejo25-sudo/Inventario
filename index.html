@@ -2,73 +2,69 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Inventario Pro - Versión Estable</title>
+    <title>Inventario Pro - Operativo</title>
     <style>
-        :root { --color-barra: #0284c7; --color-cocina: #db2777; --bg: #f8fafc; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-        .panel { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        #login-overlay { position: fixed; inset: 0; background: white; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin: 10px; width: 250px; }
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
+        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; color: white; background: #2563eb; }
     </style>
 </head>
 <body>
 
-    <div id="login-overlay">
-        <h2>Acceso al Sistema</h2>
-        <select id="userSelect"><option>Administrador</option><option>Encargado Barra</option><option>Encargado Cocina</option></select>
-        <input type="password" id="pin" placeholder="PIN de 4 dígitos">
-        <button class="btn" style="background:#333" onclick="validar()">Ingresar</button>
-    </div>
+<div class="panel">
+    <h3>Gestión de Inventario</h3>
+    <input type="file" id="csvFile">
+    <button class="btn" onclick="iniciarCarga()">Cargar CSV</button>
+    <p id="status"></p>
+</div>
 
-    <header style="margin-bottom: 20px;">
-        <button class="btn" style="width: auto; background: var(--color-barra);" onclick="cargarArea('barra')">Barra 🍸</button>
-        <button class="btn" style="width: auto; background: var(--color-cocina);" onclick="cargarArea('cocina')">Cocina 🍳</button>
-    </header>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    <div class="grid">
-        <div class="panel">
-            <h3 id="titulo-area">Seleccione un área</h3>
-            <button class="btn" style="background: #10b981;" onclick="descargarCSV()">⏬ Descargar Formato CSV</button>
-            <input type="file" id="fileInput" style="margin-top:15px; width: 100%;">
-            <button class="btn" style="background: #64748b;" onclick="subirCSV()">⬆️ Cargar CSV</button>
-            <button class="btn" style="background: #f59e0b;" onclick="cerrarCiclo()">🔄 Cerrar Ciclo</button>
-        </div>
-        <div class="panel">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead><tr><th>Producto</th><th>Inicial</th><th>Entradas</th><th>Final</th><th>Consumo</th></tr></thead>
-                <tbody id="tabla-cuerpo"></tbody>
-            </table>
-        </div>
-    </div>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBo2atzdPgNnT6OUpPdzRZ1yFs44uhVAqE",
+        projectId: "inventarios-restaurantes",
+        appId: "1:1005713681720:web:76b2cf534c34aa0a17e5cd"
+    };
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    const db = getFirestore(initializeApp(firebaseConfig));
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBo2atzdPgNnT6OUpPdzRZ1yFs44uhVAqE",
-            projectId: "inventarios-restaurantes",
-            appId: "1:1005713681720:web:76b2cf534c34aa0a17e5cd"
+    window.iniciarCarga = async () => {
+        const fileInput = document.getElementById('csvFile');
+        const status = document.getElementById('status');
+        
+        if (!fileInput.files.length) return alert("Selecciona un archivo");
+        
+        status.innerText = "Estado: Procesando...";
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (e) => {
+            const rows = e.target.result.split('\n');
+            let exito = 0;
+            
+            for (let i = 1; i < rows.length; i++) {
+                const [nombre, inicial, entradas, final] = rows[i].split(',');
+                if (!nombre) continue;
+                
+                try {
+                    await setDoc(doc(db, "barra", nombre.trim()), {
+                        nombre: nombre.trim(),
+                        inicial: Number(inicial),
+                        entradas: Number(entradas),
+                        final: Number(final)
+                    });
+                    exito++;
+                } catch (err) {
+                    console.error("Error en fila " + i, err);
+                }
+            }
+            status.innerText = "Estado: Finalizado. Productos procesados: " + exito;
+            alert("Proceso finalizado con " + exito + " registros.");
         };
-        const db = getFirestore(initializeApp(firebaseConfig));
-        window.db = db; // Hacerlo accesible globalmente
-
-        window.validar = () => {
-            const pin = document.getElementById('pin').value;
-            if(pin === "1234") document.getElementById('login-overlay').style.display = 'none';
-            else alert("PIN incorrecto");
-        };
-
-        window.cargarArea = (area) => {
-            document.getElementById('titulo-area').innerText = "Inventario: " + area.toUpperCase();
-            // Aquí puedes llamar a una función que haga fetch de la colección correspondiente
-        };
-
-        window.descargarCSV = () => { alert("Descargando..."); };
-        window.subirCSV = () => { alert("Procesando datos..."); };
-        window.cerrarCiclo = () => { if(confirm("¿Cerrar ciclo?")) alert("Ciclo cerrado."); };
-    </script>
+        reader.readAsText(file);
+    };
+</script>
 </body>
 </html>
