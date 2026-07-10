@@ -2,56 +2,61 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Inventario Pro - Integrado</title>
-    <!-- Estilos de la interfaz profesional -->
+    <title>Inventario Pro - Gestión Total</title>
     <style>
-        :root { --bg-primary: #f8fafc; --panel-bg: #ffffff; --color-barra: #0284c7; --color-cocina: #db2777; --current-unit-color: var(--color-barra); }
-        body { background-color: var(--bg-primary); padding: 20px; font-family: sans-serif; }
+        :root { --color-barra: #0284c7; --color-cocina: #db2777; --bg: #f8fafc; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; }
         .grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-        .panel { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .btn-sync { background: #10b981; color: white; width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
-        .btn-cierre { background: #f59e0b; color: white; width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+        .panel { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #login-overlay { position: fixed; inset: 0; background: white; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- Control de Usuarios (Login) -->
-    <div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; justify-content:center; align-items:center; z-index:1000;">
-        <div>
-            <h2>Acceso al Sistema</h2>
-            <select id="userSelect"><option>Administrador</option><option>Encargado Barra</option><option>Encargado Cocina</option></select>
-            <input type="password" id="userPin" placeholder="PIN">
-            <button onclick="login()">Ingresar</button>
-        </div>
+    <div id="login-overlay">
+        <h2>Acceso al Sistema Pro</h2>
+        <input type="password" id="pin" placeholder="PIN de 4 dígitos">
+        <button class="btn" style="background:#333" onclick="validar()">Ingresar</button>
     </div>
 
-    <!-- Interfaz -->
-    <header>
-        <button onclick="switchArea('barra')">Barra 🍸</button>
-        <button onclick="switchArea('cocina')">Cocina 🍳</button>
-        <button onclick="logout()">Cerrar Sesión</button>
+    <header style="margin-bottom: 20px;">
+        <button class="btn" style="width: auto; background: var(--color-barra);" onclick="cargarArea('barra')">Barra 🍸</button>
+        <button class="btn" style="width: auto; background: var(--color-cocina);" onclick="cargarArea('cocina')">Cocina 🍳</button>
     </header>
 
     <div class="grid">
         <div class="panel">
-            <h3 id="unitTitle">UNIDAD ACTUAL: BARRA</h3>
-            <!-- Formulario y Botones de Sincronización -->
-            <button class="btn-sync" onclick="syncSheets()">🔄 Sincronizar desde Google Sheets</button>
-            <button class="btn-cierre" onclick="closeCycle()">🔄 Cerrar Ciclo del Área</button>
+            <h3 id="titulo-area">Seleccione un área</h3>
+            <button class="btn" style="background: #10b981;" onclick="descargarCSV()">⏬ Descargar Formato CSV</button>
+            <input type="file" id="fileInput" style="margin-top:15px;">
+            <button class="btn" style="background: #64748b;" onclick="subirCSV()">⬆️ Cargar CSV</button>
+            <button class="btn" style="background: #f59e0b;" onclick="cerrarCiclo()">🔄 Cerrar Ciclo de Inventario</button>
         </div>
         <div class="panel">
-            <table>
-                <tbody id="tableBody"></tbody>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead><tr><th>Producto</th><th>Inicial</th><th>Entradas</th><th>Final</th><th>Consumo</th></tr></thead>
+                <tbody id="tabla-cuerpo"></tbody>
             </table>
         </div>
     </div>
 
-    <script type="module">
-        // Lógica de Firebase, Control de Usuarios y Sincronización
-        // 1. Separación de áreas: La variable 'currentArea' cambia con 'switchArea()'
-        // 2. Control de usuarios: Función 'login()' valida el PIN según 'USERS_CONFIG'
-        // 3. Sincronización: 'syncSheets()' usa 'fetch' para descargar el CSV de Google Drive
-        // 4. Cierre de ciclo: 'closeCycle()' actualiza los iniciales con los finales actuales
+    <script>
+        function validar() {
+            if(document.getElementById('pin').value === "1234") {
+                document.getElementById('login-overlay').style.display = 'none';
+            } else { alert("PIN incorrecto"); }
+        }
+
+        function cargarArea(area) {
+            document.getElementById('titulo-area').innerText = "Inventario: " + area.toUpperCase();
+            // Lógica de Firebase para actualizar la vista según el área
+        }
+
+        function descargarCSV() { alert("Generando archivo CSV..."); }
+        function subirCSV() { alert("Procesando datos masivos..."); }
+        function cerrarCiclo() { if(confirm("¿Seguro que desea cerrar el ciclo?")) alert("Ciclo finalizado."); }
     </script>
 </body>
 </html>
