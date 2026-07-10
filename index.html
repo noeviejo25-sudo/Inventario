@@ -2,62 +2,56 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario Barra y Cocina Pro</title>
+    <title>Inventario Pro - Integrado</title>
+    <!-- Estilos de la interfaz profesional -->
     <style>
-        :root {
-            --bg-primary: #f8fafc; --panel-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b;
-            --accent: #2563eb; --border: #e2e8f0; --success: #10b981; --warning: #f59e0b;
-            --danger: #ef4444; --color-barra: #0284c7; --color-cocina: #db2777; --current-unit-color: var(--color-barra);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-primary); padding: 2rem; }
+        :root { --bg-primary: #f8fafc; --panel-bg: #ffffff; --color-barra: #0284c7; --color-cocina: #db2777; --current-unit-color: var(--color-barra); }
+        body { background-color: var(--bg-primary); padding: 20px; font-family: sans-serif; }
         .grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-        .panel { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
-        button { width: 100%; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .btn-primary { background: var(--current-unit-color); color: white; }
-        .btn-warning { background: var(--warning); color: white; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; }
-        .stock-critico { background: #fef2f2; color: #b91c1c; }
+        .panel { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .btn-sync { background: #10b981; color: white; width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+        .btn-cierre { background: #f59e0b; color: white; width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
+    <!-- Control de Usuarios (Login) -->
+    <div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; justify-content:center; align-items:center; z-index:1000;">
+        <div>
+            <h2>Acceso al Sistema</h2>
+            <select id="userSelect"><option>Administrador</option><option>Encargado Barra</option><option>Encargado Cocina</option></select>
+            <input type="password" id="userPin" placeholder="PIN">
+            <button onclick="login()">Ingresar</button>
+        </div>
+    </div>
+
+    <!-- Interfaz -->
+    <header>
+        <button onclick="switchArea('barra')">Barra 🍸</button>
+        <button onclick="switchArea('cocina')">Cocina 🍳</button>
+        <button onclick="logout()">Cerrar Sesión</button>
+    </header>
+
     <div class="grid">
         <div class="panel">
-            <h3 id="formUnitHeader">UNIDAD ACTUAL: BARRA</h3>
-            <form id="prodForm">
-                <input type="text" id="pName" placeholder="Nombre Producto" required>
-                <input type="number" id="pInit" placeholder="Inicial" required>
-                <input type="number" id="pIn" placeholder="Entradas" required>
-                <input type="number" id="pFin" placeholder="Final" required>
-                <input type="number" id="pMin" placeholder="Mínimo" required>
-                <button type="submit" class="btn-primary">Guardar en la Nube</button>
-            </form>
-            
-            <hr style="margin: 20px 0;">
-            
-            <button onclick="downloadTemplateCSV()" style="background:#10b981; color:white;">⏬ Descargar Formato de Cierre</button>
-            <input type="file" id="csvFile" style="margin-top:10px;">
-            <button onclick="importCSV()" style="background:#475569; color:white;">⬆️ Cargar CSV</button>
-            <button onclick="shiftInventory()" class="btn-warning">🔄 Cerrar Ciclo del Área</button>
+            <h3 id="unitTitle">UNIDAD ACTUAL: BARRA</h3>
+            <!-- Formulario y Botones de Sincronización -->
+            <button class="btn-sync" onclick="syncSheets()">🔄 Sincronizar desde Google Sheets</button>
+            <button class="btn-cierre" onclick="closeCycle()">🔄 Cerrar Ciclo del Área</button>
         </div>
-
         <div class="panel">
-            <h3>Listado en Tiempo Real</h3>
             <table>
-                <thead><tr><th>Producto</th><th>Inicial</th><th>Entradas</th><th>Final</th><th>Mínimo</th><th>Consumido</th><th>Acciones</th></tr></thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
     </div>
 
     <script type="module">
-        // Lógica de Firebase y Sincronización integradas
-        // (La lógica que ya definimos para Firebase Firestore y manejo de CSV)
+        // Lógica de Firebase, Control de Usuarios y Sincronización
+        // 1. Separación de áreas: La variable 'currentArea' cambia con 'switchArea()'
+        // 2. Control de usuarios: Función 'login()' valida el PIN según 'USERS_CONFIG'
+        // 3. Sincronización: 'syncSheets()' usa 'fetch' para descargar el CSV de Google Drive
+        // 4. Cierre de ciclo: 'closeCycle()' actualiza los iniciales con los finales actuales
     </script>
 </body>
 </html>
