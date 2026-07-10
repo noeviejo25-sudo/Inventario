@@ -5,7 +5,6 @@
     <title>Inventario Barra y Cocina Pro</title>
     <style>
         body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
-        .nav { display: flex; gap: 10px; margin-bottom: 20px; }
         .panel { background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
@@ -16,16 +15,16 @@
     <h1>Inventario Barra y Cocina Pro</h1>
     
     <div class="panel">
-        <h3>Sincronización con Google Sheets</h3>
-        <button class="btn-sync" onclick="sincronizar('barra')">Sincronizar Barra 🍸</button>
-        <button class="btn-sync" style="background: #db2777;" onclick="sincronizar('cocina')">Sincronizar Cocina 🍳</button>
+        <h3>Sincronización</h3>
+        <button class="btn-sync" onclick="sincronizar('barra')">Sincronizar Barra</button>
+        <button class="btn-sync" style="background: #db2777;" onclick="sincronizar('cocina')">Sincronizar Cocina</button>
     </div>
 
     <div class="panel">
         <table id="invTable">
             <thead>
                 <tr>
-                    <th>Producto</th><th>U.M.</th><th>Inicial</th><th>Entradas</th><th>Final</th><th>Consumido</th><th>Acciones</th>
+                    <th>Área</th><th>Producto</th><th>Inicial</th><th>Entradas</th><th>Consumido</th><th>Final</th><th>Unidad</th>
                 </tr>
             </thead>
             <tbody id="invBody"></tbody>
@@ -34,24 +33,34 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = { /* ... tu config ... */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBo2atzdPgNnT6OUpPdzRZ1yFs44uhVAqE",
+            authDomain: "inventarios-restaurantes.firebaseapp.com",
+            projectId: "inventarios-restaurantes",
+            storageBucket: "inventarios-restaurantes.firebasestorage.app",
+            messagingSenderId: "1005713681720",
+            appId: "1:1005713681720:web:76b2cf534c34aa0a17e5cd"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Lógica de sincronización
-        window.sincronizar = async (area) => {
-            const url = area === 'barra' ? "LINK_BARRA" : "LINK_COCINA";
-            const resp = await fetch(url);
-            const data = await resp.text();
-            // ... (procesamiento del CSV) ...
-            alert('Sincronización completada');
-        };
-
-        // Mostrar en tabla
         onSnapshot(collection(db, "inventario_total"), (snap) => {
-            // ... (rellenar tabla) ...
+            const body = document.getElementById('invBody');
+            body.innerHTML = '';
+            snap.forEach(doc => {
+                const d = doc.data();
+                body.innerHTML += `<tr>
+                    <td>${d.area?.toUpperCase() || ''}</td>
+                    <td>${d.name || ''}</td>
+                    <td>${d.inicial || 0}</td>
+                    <td>${d.entradas || 0}</td>
+                    <td>${d.consumido || 0}</td>
+                    <td>${d.final || 0}</td>
+                    <td>${d.unidad || '-'}</td>
+                </tr>`;
+            });
         });
     </script>
 </body>
