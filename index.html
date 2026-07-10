@@ -2,21 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Inventario Pro - Gestión Total</title>
+    <title>Inventario Pro - Versión Estable</title>
     <style>
         :root { --color-barra: #0284c7; --color-cocina: #db2777; --bg: #f8fafc; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; }
         .grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-        .panel { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .panel { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
         .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
         #login-overlay { position: fixed; inset: 0; background: white; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin: 10px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin: 10px; width: 250px; }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
-        <h2>Acceso al Sistema Pro</h2>
+        <h2>Acceso al Sistema</h2>
+        <select id="userSelect"><option>Administrador</option><option>Encargado Barra</option><option>Encargado Cocina</option></select>
         <input type="password" id="pin" placeholder="PIN de 4 dígitos">
         <button class="btn" style="background:#333" onclick="validar()">Ingresar</button>
     </div>
@@ -30,9 +31,9 @@
         <div class="panel">
             <h3 id="titulo-area">Seleccione un área</h3>
             <button class="btn" style="background: #10b981;" onclick="descargarCSV()">⏬ Descargar Formato CSV</button>
-            <input type="file" id="fileInput" style="margin-top:15px;">
+            <input type="file" id="fileInput" style="margin-top:15px; width: 100%;">
             <button class="btn" style="background: #64748b;" onclick="subirCSV()">⬆️ Cargar CSV</button>
-            <button class="btn" style="background: #f59e0b;" onclick="cerrarCiclo()">🔄 Cerrar Ciclo de Inventario</button>
+            <button class="btn" style="background: #f59e0b;" onclick="cerrarCiclo()">🔄 Cerrar Ciclo</button>
         </div>
         <div class="panel">
             <table style="width: 100%; border-collapse: collapse;">
@@ -42,21 +43,32 @@
         </div>
     </div>
 
-    <script>
-        function validar() {
-            if(document.getElementById('pin').value === "1234") {
-                document.getElementById('login-overlay').style.display = 'none';
-            } else { alert("PIN incorrecto"); }
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        function cargarArea(area) {
+        const firebaseConfig = {
+            apiKey: "AIzaSyBo2atzdPgNnT6OUpPdzRZ1yFs44uhVAqE",
+            projectId: "inventarios-restaurantes",
+            appId: "1:1005713681720:web:76b2cf534c34aa0a17e5cd"
+        };
+        const db = getFirestore(initializeApp(firebaseConfig));
+        window.db = db; // Hacerlo accesible globalmente
+
+        window.validar = () => {
+            const pin = document.getElementById('pin').value;
+            if(pin === "1234") document.getElementById('login-overlay').style.display = 'none';
+            else alert("PIN incorrecto");
+        };
+
+        window.cargarArea = (area) => {
             document.getElementById('titulo-area').innerText = "Inventario: " + area.toUpperCase();
-            // Lógica de Firebase para actualizar la vista según el área
-        }
+            // Aquí puedes llamar a una función que haga fetch de la colección correspondiente
+        };
 
-        function descargarCSV() { alert("Generando archivo CSV..."); }
-        function subirCSV() { alert("Procesando datos masivos..."); }
-        function cerrarCiclo() { if(confirm("¿Seguro que desea cerrar el ciclo?")) alert("Ciclo finalizado."); }
+        window.descargarCSV = () => { alert("Descargando..."); };
+        window.subirCSV = () => { alert("Procesando datos..."); };
+        window.cerrarCiclo = () => { if(confirm("¿Cerrar ciclo?")) alert("Ciclo cerrado."); };
     </script>
 </body>
 </html>
